@@ -1,11 +1,13 @@
 package org.zerock.b01.repository;
 
 import lombok.extern.log4j.Log4j2;
+import net.bytebuddy.asm.Advice;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.zerock.b01.domain.Todo;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
@@ -23,6 +25,7 @@ public class TodoRepositoryTests {
             Todo todo = Todo.builder()
                     .title("title...." + i)
                     .writer("writer...." + i)
+                    .dueDate(LocalDate.now())
                     .finished(false)
                     .build();
 

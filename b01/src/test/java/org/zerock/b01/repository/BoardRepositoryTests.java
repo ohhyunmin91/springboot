@@ -4,10 +4,14 @@ import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.Query;
 import org.zerock.b01.domain.Board;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.IntStream;
 
 @SpringBootTest
@@ -72,5 +76,98 @@ public class BoardRepositoryTests {
         Board board = result.orElseThrow();
 
         boardRepository.delete(board);
+    }
+
+    // JPA paging 기능 테스트
+    @Test
+    public void testPaging() {
+        // 1 page에 게시물 번호 내림차순으로 정렬
+        Pageable pageable = PageRequest.of(0, 10, Sort.by("bno").descending());
+
+        Page<Board> result = boardRepository.findAll(pageable);
+
+        log.info("total count: "+result.getTotalElements());
+        log.info("total pages:" +result.getTotalPages());
+        log.info("page number: "+result.getNumber());
+        log.info("page size: "+result.getSize());
+
+        List<Board> todoList = result.getContent();
+
+        todoList.forEach(board -> log.info(board));
+    }
+
+    // JPA Query Method 테스트1
+    @Test
+    public void queryMethodTest1() {
+        List<Board> boardList
+                = boardRepository.findByTitleAndWriter("title...99", "user9");
+
+        boardList.forEach(board -> log.info(board));
+    }
+    // JPA Query Method 테스트2
+    @Test
+    public void queryMethodTest2() {
+        List<Board> boardList
+                = boardRepository.findByWriterIn(Arrays.asList("user9", "user3"));
+
+        boardList.forEach(board -> log.info(board));
+    }
+    // JPA Query Method 테스트3
+    @Test
+    public void queryMethodTest3() {
+        // 1 page에 게시물 번호 내림차순으로 정렬
+        Pageable pageable
+                = PageRequest.of(0, 10, Sort.by("bno").descending());
+        Page<Board> boardPage
+                = boardRepository.findByTitleContainingOrderByBnoDesc("content", pageable);
+
+        boardPage.forEach(board -> log.info(board));
+    }
+
+    // 내가 만든 테스트
+    @Test
+    public void queryMethodTest4() {
+        List<Board> boardList
+                = boardRepository.findByTitleOrWriter("title...99", "user3");
+
+        boardList.forEach(board -> log.info(board));
+    }
+
+    @Test
+    public void queryMethodTest5() {
+        List<Board> boardList
+                = boardRepository.findByWriterNotLike("%user2%");
+
+        boardList.forEach(board -> log.info(board.toString()));
+    }
+
+    @Test
+    public void queryMethodAnnotationTest1() {
+        // 1 page에 게시물 번호 내림차순으로 정렬
+        Pageable pageable
+                = PageRequest.of(0, 10, Sort.by("bno").descending());
+
+        Page<Board> boardPage
+                = boardRepository.findKeyword("content", pageable);
+
+        boardPage.forEach(board -> log.info(board));
+    }
+
+    @Test
+    public void queryMethodAnnotationTest2() {
+
+        List<Board> boardList
+                = boardRepository.findFromTitleWriter("title...14", "user4");
+
+        boardList.forEach(board -> log.info(board));
+    }
+
+    @Test
+    public void queryMethodAnnotationTest3() {
+
+        List<Board> boardList
+                = boardRepository.findFromWriters(Arrays.asList("user1","user2"));
+
+        boardList.forEach(board -> log.info(board));
     }
 }
